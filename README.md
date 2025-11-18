@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## H5P & SCORM Viewer
 
-## Getting Started
+Next.js 16 App Router application for uploading, validating, and previewing interactive learning packages (H5P and SCORM) inside a controlled environment.
 
-First, run the development server:
+### Scripts
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Next dev server with Turbo transforms |
+| `npm run build` | Production build |
+| `npm run start` | Run the production server |
+| `npm run lint` | ESLint with Next.js config |
+| `npm run typecheck` | Strict TypeScript validation |
+| `npm run test` | Vitest suite (storage harness for now) |
+
+### Content Security Policy
+
+Global CSP header (configured in `next.config.ts`):
+
+```
+default-src 'self';
+script-src 'self' 'unsafe-inline' 'unsafe-eval';
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob:;
+font-src 'self';
+connect-src 'self';
+frame-src 'self';
+object-src 'none';
+base-uri 'self';
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`unsafe-inline` and `unsafe-eval` remain enabled so embedded H5P/SCORM runtimes can execute their injected scripts and legacy inline styles. If you harden the policy further, verify every package still loads correctly.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### In-Memory Storage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`lib/storage/in-memory-storage.ts` backs uploads with a process-level `Map`. Key traits:
 
-## Learn More
+- Strongly typed `PackageRecord` structure with metadata and file buffers.
+- Optional TTL to auto-expire packages (`ttlMs` constructor option).
+- CRUD helpers (`store`, `get`, `delete`, `exists`, `list`, `purgeExpired`).
 
-To learn more about Next.js, take a look at the following resources:
+#### Limitations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Ephemeral** – data disappears on server restarts, crashes, or deployments.
+- **Not shared** – each server instance keeps its own memory map (horizontal scaling loses parity).
+- **Memory-bound** – large uploads can exhaust RAM; enforce size checks before storing.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For production use, replace this layer with object storage (S3, Vercel Blob, GCS) and persist metadata in a database.
 
-## Deploy on Vercel
+### Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Storage behavior is covered by `__tests__/storage.test.ts` (Vitest). Run `npm run test` to execute the suite. Add additional suites as new libraries and parsers are implemented.
