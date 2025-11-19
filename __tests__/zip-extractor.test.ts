@@ -14,6 +14,14 @@ function createTestZip(files: Array<{ path: string; content: string }>): Buffer 
   return zip.toBuffer();
 }
 
+function renameFirstEntry(zip: AdmZip, newName: string): void {
+  const [entry] = zip.getEntries();
+  if (!entry) {
+    throw new Error("Test ZIP should contain at least one entry");
+  }
+  entry.entryName = newName;
+}
+
 describe("zip-extractor", () => {
   let tempDir: string;
 
@@ -44,7 +52,8 @@ describe("zip-extractor", () => {
 
   it("rejects zip-slip attack via ../ paths", async () => {
     const zip = new AdmZip();
-    zip.addFile("../../../etc/passwd", Buffer.from("malicious"));
+    zip.addFile("placeholder.txt", Buffer.from("malicious"));
+    renameFirstEntry(zip, "../../../etc/passwd");
 
     await expect(extractZip(zip.toBuffer(), tempDir)).rejects.toThrow(
       ZipExtractionError
@@ -62,7 +71,8 @@ describe("zip-extractor", () => {
 
   it("rejects zip-slip attack via absolute paths", async () => {
     const zip = new AdmZip();
-    zip.addFile("/etc/passwd", Buffer.from("malicious"));
+    zip.addFile("placeholder.txt", Buffer.from("malicious"));
+    renameFirstEntry(zip, "/etc/passwd");
 
     await expect(extractZip(zip.toBuffer(), tempDir)).rejects.toThrow(
       ZipExtractionError
@@ -80,7 +90,8 @@ describe("zip-extractor", () => {
 
   it("rejects zip-slip attack via encoded paths", async () => {
     const zip = new AdmZip();
-    zip.addFile("..\\..\\..\\windows\\system32\\config", Buffer.from("malicious"));
+    zip.addFile("placeholder.txt", Buffer.from("malicious"));
+    renameFirstEntry(zip, "..\\..\\..\\windows\\system32\\config");
 
     await expect(extractZip(zip.toBuffer(), tempDir)).rejects.toThrow(
       ZipExtractionError
@@ -104,18 +115,18 @@ describe("zip-extractor", () => {
   });
 
   it("rejects ZIP with too many entries", async () => {
-    const files = Array.from({ length: 10001 }, (_, i) => ({
+    const files = Array.from({ length: 6 }, (_, i) => ({
       path: `file${i}.txt`,
       content: "content"
     }));
     const zipBuffer = createTestZip(files);
 
-    await expect(extractZip(zipBuffer, tempDir)).rejects.toThrow(
-      ZipExtractionError
-    );
+    await expect(
+      extractZip(zipBuffer, tempDir, { maxEntries: 5 })
+    ).rejects.toThrow(ZipExtractionError);
 
     try {
-      await extractZip(zipBuffer, tempDir);
+      await extractZip(zipBuffer, tempDir, { maxEntries: 5 });
     } catch (error) {
       expect(error).toBeInstanceOf(ZipExtractionError);
       if (error instanceof ZipExtractionError) {
@@ -125,19 +136,19 @@ describe("zip-extractor", () => {
   });
 
   it("rejects ZIP exceeding total size limit", async () => {
-    const largeContent = Buffer.alloc(60 * 1024 * 1024, "x");
+    const largeContent = Buffer.alloc(2 * 1024 * 1024, "x");
     const zip = new AdmZip();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 2; i++) {
       zip.addFile(`large${i}.txt`, largeContent);
     }
     const zipBuffer = zip.toBuffer();
 
     await expect(
-      extractZip(zipBuffer, tempDir, { maxTotalSize: 500 * 1024 * 1024 })
+      extractZip(zipBuffer, tempDir, { maxTotalSize: 3 * 1024 * 1024 })
     ).rejects.toThrow(ZipExtractionError);
 
     try {
-      await extractZip(zipBuffer, tempDir, { maxTotalSize: 500 * 1024 * 1024 });
+      await extractZip(zipBuffer, tempDir, { maxTotalSize: 3 * 1024 * 1024 });
     } catch (error) {
       expect(error).toBeInstanceOf(ZipExtractionError);
       if (error instanceof ZipExtractionError) {

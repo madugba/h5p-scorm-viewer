@@ -1,4 +1,4 @@
-import { resolve, normalize, join } from "path";
+import { resolve, normalize } from "path";
 import AdmZip from "adm-zip";
 import { ZipExtractionError } from "./errors";
 
