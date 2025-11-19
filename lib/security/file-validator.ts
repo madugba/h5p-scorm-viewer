@@ -15,17 +15,18 @@ export interface FileInput {
   type?: string;
 }
 
-const DEFAULT_MAX_SIZE_MB = 100;
+export const DEFAULT_MAX_SIZE_MB = 100;
 const MAX_SIZE_MB =
   typeof process !== "undefined" && process.env.MAX_FILE_SIZE_MB
     ? Number.parseInt(process.env.MAX_FILE_SIZE_MB, 10)
     : DEFAULT_MAX_SIZE_MB;
 
-const BYTES_PER_MB = 1024 * 1024;
+export const BYTES_PER_MB = 1024 * 1024;
+export const MAX_FILE_SIZE_BYTES = MAX_SIZE_MB * BYTES_PER_MB;
 
 export function getDefaultValidationConfig(): ValidationConfig {
   return {
-    maxSizeBytes: MAX_SIZE_MB * BYTES_PER_MB,
+    maxSizeBytes: MAX_FILE_SIZE_BYTES,
     allowedMimeTypes: ["application/zip", "application/x-zip-compressed"],
     allowedExtensions: [".h5p", ".zip"]
   };
@@ -33,7 +34,7 @@ export function getDefaultValidationConfig(): ValidationConfig {
 
 export function getH5PValidationConfig(): ValidationConfig {
   return {
-    maxSizeBytes: MAX_SIZE_MB * BYTES_PER_MB,
+    maxSizeBytes: MAX_FILE_SIZE_BYTES,
     allowedMimeTypes: ["application/zip", "application/x-zip-compressed"],
     allowedExtensions: [".h5p"]
   };
@@ -41,7 +42,7 @@ export function getH5PValidationConfig(): ValidationConfig {
 
 export function getSCORMValidationConfig(): ValidationConfig {
   return {
-    maxSizeBytes: MAX_SIZE_MB * BYTES_PER_MB,
+    maxSizeBytes: MAX_FILE_SIZE_BYTES,
     allowedMimeTypes: ["application/zip", "application/x-zip-compressed"],
     allowedExtensions: [".zip"]
   };
