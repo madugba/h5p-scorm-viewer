@@ -12,18 +12,26 @@ export type ValidationConfig = z.infer<typeof ValidationConfigSchema>;
 export interface FileInput {
   size: number;
   name: string;
-  type?: string;
+  type?: string | undefined;
 }
 
 export const DEFAULT_MAX_SIZE_MB = 100;
+
+/**
+ * Determine the configured max size (in MB) by inspecting env overrides.
+ * Falls back to {@link DEFAULT_MAX_SIZE_MB} when the env var is missing/invalid.
+ */
 const MAX_SIZE_MB =
-  typeof process !== "undefined" && process.env.MAX_FILE_SIZE_MB
-    ? Number.parseInt(process.env.MAX_FILE_SIZE_MB, 10)
+  typeof process !== "undefined" && process.env["MAX_FILE_SIZE_MB"]
+    ? Number.parseInt(process.env["MAX_FILE_SIZE_MB"], 10)
     : DEFAULT_MAX_SIZE_MB;
 
 export const BYTES_PER_MB = 1024 * 1024;
 export const MAX_FILE_SIZE_BYTES = MAX_SIZE_MB * BYTES_PER_MB;
 
+/**
+ * Baseline validation config that accepts both H5P and SCORM file types.
+ */
 export function getDefaultValidationConfig(): ValidationConfig {
   return {
     maxSizeBytes: MAX_FILE_SIZE_BYTES,
@@ -32,6 +40,9 @@ export function getDefaultValidationConfig(): ValidationConfig {
   };
 }
 
+/**
+ * Validation config with H5P-specific extension constraints.
+ */
 export function getH5PValidationConfig(): ValidationConfig {
   return {
     maxSizeBytes: MAX_FILE_SIZE_BYTES,
@@ -40,6 +51,9 @@ export function getH5PValidationConfig(): ValidationConfig {
   };
 }
 
+/**
+ * Validation config with SCORM-specific extension constraints.
+ */
 export function getSCORMValidationConfig(): ValidationConfig {
   return {
     maxSizeBytes: MAX_FILE_SIZE_BYTES,
@@ -48,11 +62,23 @@ export function getSCORMValidationConfig(): ValidationConfig {
   };
 }
 
+
+/**
+ * Get the file extension from a filename.
+ * @param filename - The filename to get the extension from.
+ * @returns The file extension.
+ */
 function getFileExtension(filename: string): string {
   const lastDot = filename.lastIndexOf(".");
   return lastDot >= 0 ? filename.slice(lastDot).toLowerCase() : "";
 }
 
+/**
+ * Validate the size of a file.
+ * @param size - The size of the file in bytes.
+ * @param maxSizeBytes - The maximum allowed size of the file in bytes.
+ * @throws {ValidationError} If the file size exceeds the maximum allowed size.
+ */
 function validateSize(size: number, maxSizeBytes: number): void {
   if (size > maxSizeBytes) {
     const sizeMB = (size / BYTES_PER_MB).toFixed(2);
@@ -64,6 +90,11 @@ function validateSize(size: number, maxSizeBytes: number): void {
   }
 }
 
+/**
+ * Ensure the filename uses an allowed extension.
+ * @param filename - Name provided by the file input.
+ * @param allowedExtensions - List of whitelisted extensions.
+ */
 function validateExtension(
   filename: string,
   allowedExtensions: readonly string[]
@@ -77,6 +108,10 @@ function validateExtension(
   }
 }
 
+/**
+ * Ensure the MIME type is explicitly allowed by the config.
+ * Empty strings are tolerated, since browsers sometimes omit this metadata.
+ */
 function validateMimeType(
   mimeType: string | undefined,
   allowedMimeTypes: readonly string[]
@@ -93,6 +128,10 @@ function validateMimeType(
   }
 }
 
+/**
+ * Validate a file descriptor against the provided configuration.
+ * @throws {ValidationError} when any constraint fails (size, extension, mime).
+ */
 export function validateFile(
   file: FileInput,
   config?: Partial<ValidationConfig>

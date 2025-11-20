@@ -11,7 +11,7 @@
 - Cover MIME/size checks, zip-slip protections, and config hooks.
 
 4. Upload Workflow & Components
-- Create app/upload/page.tsx, app/upload/actions.ts, components/upload-form.tsx, components/share-link.tsx.
+- Create app/upload/page.tsx, app/upload/actions.ts, components/sections/upload/upload-form.tsx, components/shared/share-link.tsx.
 - Wire server action, client validation, success redirect, share links.
 
 5. H5P Parsing & Viewer Routes
@@ -20,7 +20,7 @@
 
 6. SCORM Parsing, API Shim, and Viewer
 - Implement lib/scorm/parser.ts, lib/scorm/api-shim.ts, app/scorm/[id]/page.tsx, app/scorm/[id]/route.ts.
-- Integrate components/debug-panel.tsx for SCORM API logging.
+- Integrate components/layout/debug-panel.tsx for SCORM API logging.
 
 7. Package Metadata API & Tests
 - Build app/api/packages/[id]/route.ts and add tests under __tests__/upload.test.ts + __tests__/scorm-parser.test.ts.

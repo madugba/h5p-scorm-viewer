@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "functions": {
+    "app/**": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "github": {
+    "silent": true
+  }
+}
+

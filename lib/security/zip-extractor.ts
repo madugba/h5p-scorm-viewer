@@ -13,6 +13,11 @@ export interface ExtractionOptions {
   maxTotalSize?: number;
 }
 
+/**
+ * Sensible defaults to defend against pathologically large archives.
+ *  - max entries: 10k files
+ *  - max total size: 500 MB
+ */
 const DEFAULT_MAX_ENTRIES = 10000;
 const DEFAULT_MAX_TOTAL_SIZE = 500 * 1024 * 1024;
 
@@ -47,6 +52,13 @@ function isPathSafe(
   return { safe: isSafe, resolvedPath: resolvedEntry };
 }
 
+/**
+ * Extracts a ZIP buffer entirely in-memory while enforcing safety constraints.
+ * @param buffer Raw ZIP bytes.
+ * @param targetDir Used only to validate entry paths (zip-slip prevention).
+ * @param options Optional limit overrides.
+ * @throws {ZipExtractionError} when validation or extraction fails.
+ */
 export async function extractZip(
   buffer: Buffer,
   targetDir: string,

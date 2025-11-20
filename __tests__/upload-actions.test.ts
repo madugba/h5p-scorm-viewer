@@ -1,9 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { File } from "node:buffer";
-import {
-  uploadPackageAction,
-  initialUploadState
-} from "../app/upload/actions";
+import { uploadPackageAction } from "../app/upload/actions";
+import { initialUploadState } from "../app/upload/state";
 import { inMemoryStorage } from "../lib/storage/in-memory-storage";
 
 vi.mock("nanoid", () => ({
@@ -17,10 +15,27 @@ describe("uploadPackageAction", () => {
 
   it("returns error when no file is provided", async () => {
     const formData = new FormData();
+    formData.set("redirect", "false");
     const state = await uploadPackageAction(initialUploadState, formData);
     expect(state).toEqual({
       status: "error",
       message: "Upload a .h5p or .zip package."
+    });
+  });
+
+  it("returns error when package type selection is invalid", async () => {
+    const file = new File([Buffer.from("data")], "lesson.h5p", {
+      type: "application/zip"
+    });
+    const formData = new FormData();
+    formData.set("package", file as unknown as Blob, file.name);
+    formData.set("packageType", "invalid");
+
+    const state = await uploadPackageAction(initialUploadState, formData);
+
+    expect(state).toEqual({
+      status: "error",
+      message: "Invalid package type selection."
     });
   });
 
@@ -29,8 +44,9 @@ describe("uploadPackageAction", () => {
       type: "application/zip"
     });
     const formData = new FormData();
-    formData.set("package", file);
+    formData.set("package", file as unknown as Blob, file.name);
     formData.set("packageType", "h5p");
+    formData.set("redirect", "false");
 
     const storeSpy = vi
       .spyOn(inMemoryStorage, "store")
@@ -65,7 +81,8 @@ describe("uploadPackageAction", () => {
       type: "application/zip"
     });
     const formData = new FormData();
-    formData.set("package", file);
+    formData.set("package", file as unknown as Blob, file.name);
+    formData.set("redirect", "false");
 
     vi.spyOn(inMemoryStorage, "store").mockImplementation((record) => ({
       ...record,
