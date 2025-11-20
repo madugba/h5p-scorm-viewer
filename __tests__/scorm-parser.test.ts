@@ -1,0 +1,60 @@
+import { describe, expect, it } from "vitest";
+import AdmZip from "adm-zip";
+import { parseScormArchive } from "../lib/scorm/parser";
+
+const createManifest = ({
+  version = "1.2",
+  launch = "index.html",
+  title = "Sample Course"
+}: {
+  version?: string;
+  launch?: string;
+  title?: string;
+}) => `<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="Example" version="1.0">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>${version}</schemaversion>
+  </metadata>
+  <organizations default="ORG1">
+    <organization identifier="ORG1">
+      <title>${title}</title>
+      <item identifier="ITEM1" identifierref="RES1">
+        <title>${title}</title>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="RES1" href="${launch}" scormType="sco" />
+  </resources>
+</manifest>`;
+
+const createScormBuffer = (manifest: string) => {
+  const zip = new AdmZip();
+  zip.addFile("imsmanifest.xml", Buffer.from(manifest, "utf-8"));
+  zip.addFile("index.html", Buffer.from("<html></html>", "utf-8"));
+  return zip.toBuffer();
+};
+
+describe("parseScormArchive", () => {
+  it("detects SCORM 1.2 manifest", () => {
+    const buffer = createScormBuffer(createManifest({ version: "1.2" }));
+    const parsed = parseScormArchive(buffer);
+    expect(parsed.version).toBe("1.2");
+    expect(parsed.launchFile).toBe("index.html");
+    expect(parsed.assets.has("imsmanifest.xml")).toBe(true);
+  });
+
+  it("detects SCORM 2004 manifest", () => {
+    const buffer = createScormBuffer(createManifest({ version: "2004 4th Edition" }));
+    const parsed = parseScormArchive(buffer);
+    expect(parsed.version).toBe("2004");
+  });
+
+  it("throws when manifest missing", () => {
+    const zip = new AdmZip();
+    const buffer = zip.toBuffer();
+    expect(() => parseScormArchive(buffer)).toThrow();
+  });
+});
+

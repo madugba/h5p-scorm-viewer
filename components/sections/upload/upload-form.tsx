@@ -1,27 +1,26 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useActionState, useEffect } from "react";
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import {
   MAX_FILE_SIZE_BYTES,
   BYTES_PER_MB,
   DEFAULT_MAX_SIZE_MB
 } from "@/lib/security/file-validator";
-import {
-  initialUploadState,
-  uploadPackageAction,
-  type UploadState
-} from "@/app/upload/actions";
-import { Button } from "./ui/button";
-import { ShareLink } from "./share-link";
+import { uploadPackageAction } from "@/app/upload/actions";
+import { initialUploadState, type UploadState } from "@/app/upload/state";
+import { Button } from "@/components/ui/button";
+import { ShareLink } from "@/components/shared/share-link";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { getViewerRoute } from "@/lib/utils/viewer-routes";
 
 const ACCEPTED_EXTENSIONS = ".h5p,.zip";
 const MAX_SIZE_MB = Math.round(MAX_FILE_SIZE_BYTES / BYTES_PER_MB);
 
 interface UploadFormProps {
-  baseUrl?: string | null;
+  baseUrl: string | null;
 }
 
 const PACKAGE_OPTIONS = [
@@ -30,11 +29,16 @@ const PACKAGE_OPTIONS = [
   { label: "SCORM (.zip)", value: "scorm" }
 ] as const;
 
+type H5PRoute = `/h5p/${string}`;
+type ScormRoute = `/scorm/${string}`;
+
 export function UploadForm({ baseUrl }: UploadFormProps) {
-  const [state, formAction] = useFormState(uploadPackageAction, initialUploadState);
+  const [state, formAction] = useActionState(uploadPackageAction, initialUploadState);
   const [clientError, setClientError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const normalizedBaseUrl: string | null = baseUrl ?? null;
 
   function validateClient(): boolean {
     const file = fileInputRef.current?.files?.[0];
@@ -58,6 +62,12 @@ export function UploadForm({ baseUrl }: UploadFormProps) {
 
   const successState = state.status === "success" ? state : null;
   const errorMessage = clientError ?? (state.status === "error" ? state.message : null);
+
+  useEffect(() => {
+    if (successState) {
+      router.push(getViewerRoute(successState.packageType, successState.packageId));
+    }
+  }, [router, successState]);
 
   return (
     <form
@@ -123,7 +133,7 @@ export function UploadForm({ baseUrl }: UploadFormProps) {
       <SubmitButton />
 
       {successState && (
-        <SuccessSummary state={successState} baseUrl={baseUrl} />
+        <SuccessSummary state={successState} baseUrl={normalizedBaseUrl} />
       )}
     </form>
   );
@@ -160,9 +170,11 @@ function SuccessSummary({
           Use the preview link below or open the viewer.
         </p>
       </div>
-      <ShareLink path={destination} baseUrl={baseUrl} />
+      <ShareLink path={destination} baseUrl={baseUrl ?? null} />
       <Button asChild variant="outline">
-        <Link href={destination}>Open viewer</Link>
+        <Link href={getViewerRoute(state.packageType, state.packageId)}>
+          Open viewer
+        </Link>
       </Button>
     </div>
   );

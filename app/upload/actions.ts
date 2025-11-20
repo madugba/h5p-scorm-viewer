@@ -1,6 +1,7 @@
 "use server";
 
 import { nanoid } from "nanoid";
+import { ZodError } from "zod";
 import {
   getDefaultValidationConfig,
   getH5PValidationConfig,
@@ -8,42 +9,11 @@ import {
   type ValidationConfig,
   validateFile
 } from "@/lib/security/file-validator";
-import {
-  inMemoryStorage,
-  type PackageType
-} from "@/lib/storage/in-memory-storage";
+import { inMemoryStorage, type PackageType } from "@/lib/storage/in-memory-storage";
 import { ValidationError } from "@/lib/security/errors";
-
-type UploadState =
-  | { status: "idle" }
-  | { status: "error"; message: string }
-  | { status: "success"; packageId: string; packageType: PackageType };
-
-export const initialUploadState: UploadState = { status: "idle" };
-
-const EXTENSION_TO_TYPE: Record<string, PackageType> = {
-  ".h5p": "h5p",
-  ".zip": "scorm"
-};
-
-const PACKAGE_TYPE_FIELD = "packageType";
-const FILE_FIELD = "package";
-
-export function inferPackageType(
-  filename: string,
-  override: string | null
-): PackageType | null {
-  if (override === "h5p" || override === "scorm") {
-    return override;
-  }
-  const extension = getFileExtension(filename);
-  return EXTENSION_TO_TYPE[extension] ?? null;
-}
-
-function getFileExtension(name: string): string {
-  const index = name.lastIndexOf(".");
-  return index >= 0 ? name.slice(index).toLowerCase() : "";
-}
+import { inferPackageType } from "@/lib/upload/infer-package-type";
+import { parseUploadFormData } from "@/lib/upload/upload-form-schema";
+import type { UploadState } from "./state";
 
 function resolveValidationConfig(type: PackageType): ValidationConfig {
   if (type === "h5p") {
@@ -60,15 +30,13 @@ export async function uploadPackageAction(
   formData: FormData
 ): Promise<UploadState> {
   try {
-    const fileEntry = formData.get(FILE_FIELD);
-    if (!(fileEntry instanceof File)) {
-      throw new ValidationError("Upload a .h5p or .zip package.", "MISSING_FILE");
-    }
+    const parsedForm = parseUploadFormData(formData);
+    const fileEntry = parsedForm.package;
+    const packageTypeOverride = parsedForm.packageType === "auto" ? null : parsedForm.packageType;
 
-    const packageTypeInput = formData.get(PACKAGE_TYPE_FIELD);
     const packageType = inferPackageType(
       fileEntry.name,
-      typeof packageTypeInput === "string" ? packageTypeInput : null
+      packageTypeOverride
     );
 
     if (!packageType) {
@@ -113,6 +81,13 @@ export async function uploadPackageAction(
     if (error instanceof ValidationError) {
       return { status: "error", message: error.message };
     }
+    if (error instanceof ZodError) {
+      const issue = error.issues[0];
+      return {
+        status: "error",
+        message: issue?.message ?? "Invalid upload submission."
+      };
+    }
     console.error("[uploadPackageAction]", error);
     return {
       status: "error",
@@ -120,6 +95,4 @@ export async function uploadPackageAction(
     };
   }
 }
-
-export type { UploadState };
 

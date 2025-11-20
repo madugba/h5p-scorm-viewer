@@ -1,21 +1,11 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { UploadForm } from "@/components/upload-form";
+import { UploadForm } from "@/components/sections/upload/upload-form";
+import { resolveBaseUrl } from "@/lib/utils/base-url";
 
 export const metadata: Metadata = {
   title: "Upload | H5P & SCORM Viewer",
   description: "Upload interactive H5P or SCORM packages and generate preview links."
 };
-
-async function resolveBaseUrl(): Promise<string | null> {
-  const hdrs = await headers();
-  const host = hdrs.get("x-forwarded-host") ?? hdrs.get("host");
-  if (!host) {
-    return null;
-  }
-  const protocol = hdrs.get("x-forwarded-proto") ?? "https";
-  return `${protocol}://${host}`;
-}
 
 export default async function UploadPage() {
   const baseUrl = await resolveBaseUrl();

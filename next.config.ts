@@ -15,8 +15,14 @@ const cspHeader = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  typedRoutes: true,
   experimental: {
-    typedRoutes: true
+    serverActions: {
+      bodySizeLimit: "120mb"
+    }
+  },
+  turbopack: {
+    root: __dirname
   },
   async headers() {
     return [
