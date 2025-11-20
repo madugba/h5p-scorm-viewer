@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Onboarding Checklist – Lesson 2</title>
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; margin: 2rem; background: #f8fafc; }
+      section { background: #fff; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08); }
+      h2 { color: #0f172a; }
+      ul { padding-left: 1.1rem; }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2>Lesson 2 · Launch Review</h2>
+      <p>Validate the following before handing off to the client:</p>
+      <ul>
+        <li>Cypress smoke tests green across critical flows.</li>
+        <li>Security checklist updated with the latest CSP review.</li>
+        <li>Sample SCORM + H5P packages uploaded for final verification.</li>
+      </ul>
+      <p>Mark each item as complete and close the lesson.</p>
+    </section>
+    <script>
+      if (window.API) {
+        try {
+          API.LMSInitialize("");
+          API.LMSSetValue("cmi.core.lesson_status", "completed");
+          API.LMSSetValue("cmi.core.score.raw", "92");
+          API.LMSCommit("");
+        } catch (error) {
+          console.warn("SCORM lesson 2 API error", error);
+        }
+      }
+    </script>
+  </body>
+</html>

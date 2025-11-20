@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="SCORM_CHECKLIST_SAMPLE" version="1.2"
+  xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+  http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+  <organizations default="ORG_CHECKLIST">
+    <organization identifier="ORG_CHECKLIST">
+      <title>Two-Step Onboarding Checklist</title>
+      <item identifier="ITEM_LESSON1" identifierref="RES_LESSON1" isvisible="true">
+        <title>Lesson 1 · Orientation</title>
+      </item>
+      <item identifier="ITEM_LESSON2" identifierref="RES_LESSON2" isvisible="true">
+        <title>Lesson 2 · Launch Review</title>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="RES_LESSON1" type="webcontent" adlcp:scormtype="sco" href="lessons/lesson1.html">
+      <file href="lessons/lesson1.html" />
+    </resource>
+    <resource identifier="RES_LESSON2" type="webcontent" adlcp:scormtype="sco" href="lessons/lesson2.html">
+      <file href="lessons/lesson2.html" />
+    </resource>
+  </resources>
+</manifest>

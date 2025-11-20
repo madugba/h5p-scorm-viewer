@@ -1,8 +1,25 @@
+/**
+ * Volatile storage layer for uploaded packages.
+ *
+ * This Map-backed cache keeps bytes inside the same Node worker so previews
+ * feel instant during development, QA demos, or short-lived review sessions.
+ * Nothing persists beyond the lifetime of the process, and no external
+ * infrastructure is required for basic testing.
+ *
+ * Trade-offs:
+ *  - Data disappears whenever the process restarts or redeploys.
+ *  - Requests routed to a different worker/serverless instance will not find
+ *    the uploaded package, leading to 404 responses for existing links.
+ *  - Storing many large archives in memory increases RSS and can trip platform
+ *    memory limits.
+ *  - No replication, access control, or audit log is provided.
+ *
+ * Production deployments should replace this module with a durable store such
+ * as S3, Vercel Blob, or a database capable of storing binary assets plus
+ * metadata. Keeping the same class interface makes the swap transparent to
+ * the rest of the application.
+ */
 export type PackageType = "h5p" | "scorm";
-
-
-
-// declare type interface
 
 export interface StoredFile {
   filename: string;
@@ -95,6 +112,15 @@ export class InMemoryStorage {
   
 }
 
+/**
+ * Global singleton instance shared across hot-reload workers.
+ *
+ * Turbopack and Next.js dev servers can spawn multiple Node workers. Attaching
+ * the storage object to `globalThis` ensures each worker reuses the same
+ * Map-backed cache instead of starting empty, so preview links continue to
+ * resolve after code reloads. Production builds still create an isolated
+ * instance per process.
+ */
 declare global {
   // eslint-disable-next-line no-var
   var __H5P_SCORM_IN_MEMORY_STORAGE__:

@@ -35,7 +35,11 @@ export const MAX_FILE_SIZE_BYTES = MAX_SIZE_MB * BYTES_PER_MB;
 export function getDefaultValidationConfig(): ValidationConfig {
   return {
     maxSizeBytes: MAX_FILE_SIZE_BYTES,
-    allowedMimeTypes: ["application/zip", "application/x-zip-compressed"],
+    allowedMimeTypes: [
+      "application/zip",
+      "application/x-zip-compressed",
+      "application/octet-stream"
+    ],
     allowedExtensions: [".h5p", ".zip"]
   };
 }
@@ -46,7 +50,11 @@ export function getDefaultValidationConfig(): ValidationConfig {
 export function getH5PValidationConfig(): ValidationConfig {
   return {
     maxSizeBytes: MAX_FILE_SIZE_BYTES,
-    allowedMimeTypes: ["application/zip", "application/x-zip-compressed"],
+    allowedMimeTypes: [
+      "application/zip",
+      "application/x-zip-compressed",
+      "application/octet-stream"
+    ],
     allowedExtensions: [".h5p"]
   };
 }
@@ -57,7 +65,11 @@ export function getH5PValidationConfig(): ValidationConfig {
 export function getSCORMValidationConfig(): ValidationConfig {
   return {
     maxSizeBytes: MAX_FILE_SIZE_BYTES,
-    allowedMimeTypes: ["application/zip", "application/x-zip-compressed"],
+    allowedMimeTypes: [
+      "application/zip",
+      "application/x-zip-compressed",
+      "application/octet-stream"
+    ],
     allowedExtensions: [".zip"]
   };
 }

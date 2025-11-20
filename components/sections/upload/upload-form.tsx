@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useActionState, useEffect } from "react";
+import { useMemo, useRef, useState, useActionState } from "react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import {
@@ -13,7 +13,6 @@ import { initialUploadState, type UploadState } from "@/app/upload/state";
 import { Button } from "@/components/ui/button";
 import { ShareLink } from "@/components/shared/share-link";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { getViewerRoute } from "@/lib/utils/viewer-routes";
 
 const ACCEPTED_EXTENSIONS = ".h5p,.zip";
@@ -29,15 +28,13 @@ const PACKAGE_OPTIONS = [
   { label: "SCORM (.zip)", value: "scorm" }
 ] as const;
 
-type H5PRoute = `/h5p/${string}`;
-type ScormRoute = `/scorm/${string}`;
+
 
 export function UploadForm({ baseUrl }: UploadFormProps) {
   const [state, formAction] = useActionState(uploadPackageAction, initialUploadState);
   const [clientError, setClientError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
   const normalizedBaseUrl: string | null = baseUrl ?? null;
 
   function validateClient(): boolean {
@@ -62,12 +59,6 @@ export function UploadForm({ baseUrl }: UploadFormProps) {
 
   const successState = state.status === "success" ? state : null;
   const errorMessage = clientError ?? (state.status === "error" ? state.message : null);
-
-  useEffect(() => {
-    if (successState) {
-      router.push(getViewerRoute(successState.packageType, successState.packageId));
-    }
-  }, [router, successState]);
 
   return (
     <form
