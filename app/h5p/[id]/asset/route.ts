@@ -28,7 +28,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Package not found" }, { status: 404 });
   }
 
-  const parsed = parseH5PArchive(record.file.buffer);
+  const parsed = await parseH5PArchive(record.file.buffer);
   const url = new URL(request.url);
   const assetParam = url.searchParams.get("asset");
   const assetPath = normalizePath(assetParam ?? parsed.metadata.mainFile);

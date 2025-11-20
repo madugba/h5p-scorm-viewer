@@ -24,7 +24,37 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
     notFound();
   }
 
-  const parsed = parseScormArchive(record.file.buffer);
+  let parsed;
+  try {
+    parsed = await parseScormArchive(record.file.buffer);
+  } catch (error) {
+    const errorMessage =
+      (error as Error).message ?? "Unknown parsing error.";
+    return (
+      <div className="space-y-6 py-10">
+        <header className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            SCORM Preview
+          </p>
+          <h1 className="text-3xl font-bold text-foreground">
+            We couldn’t render this SCORM package
+          </h1>
+        </header>
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 space-y-2 text-sm text-destructive">
+          <p>
+            The uploaded archive appears to be malformed or missing required
+            files (for example, <code>imsmanifest.xml</code>). Please verify
+            the package structure and upload a valid SCORM package.
+          </p>
+          {errorMessage && (
+            <p className="text-xs font-mono text-destructive/80">
+              Diagnostic: {errorMessage}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
   const baseUrl = await resolveBaseUrl();
   const iframeSrc = `/scorm/${id}/asset?asset=${encodeURIComponent(parsed.launchFile)}`;
 

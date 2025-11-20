@@ -37,24 +37,24 @@ const createScormBuffer = (manifest: string) => {
 };
 
 describe("parseScormArchive", () => {
-  it("detects SCORM 1.2 manifest", () => {
+  it("detects SCORM 1.2 manifest", async () => {
     const buffer = createScormBuffer(createManifest({ version: "1.2" }));
-    const parsed = parseScormArchive(buffer);
+    const parsed = await parseScormArchive(buffer);
     expect(parsed.version).toBe("1.2");
     expect(parsed.launchFile).toBe("index.html");
     expect(parsed.assets.has("imsmanifest.xml")).toBe(true);
   });
 
-  it("detects SCORM 2004 manifest", () => {
+  it("detects SCORM 2004 manifest", async () => {
     const buffer = createScormBuffer(createManifest({ version: "2004 4th Edition" }));
-    const parsed = parseScormArchive(buffer);
+    const parsed = await parseScormArchive(buffer);
     expect(parsed.version).toBe("2004");
   });
 
-  it("throws when manifest missing", () => {
+  it("throws when manifest missing", async () => {
     const zip = new AdmZip();
     const buffer = zip.toBuffer();
-    expect(() => parseScormArchive(buffer)).toThrow();
+    await expect(parseScormArchive(buffer)).rejects.toThrow();
   });
 });
 

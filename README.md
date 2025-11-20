@@ -68,6 +68,7 @@ Next.js 16 App Router application for uploading, validating, and previewing inte
 
 - `npm run test` executes Vitest suites covering upload helpers, storage, validators, parsers, and ZIP safety.
 - Tests isolate domain logic (e.g., `__tests__/upload-actions.test.ts` mocks storage) so failures pinpoint business rules rather than UI wiring.
+- Vercel deployments run `npm run ci:build` (tests followed by `next build`), so any failing spec blocks the deploy.
 
 ### Development & environment
 

@@ -23,7 +23,7 @@ export default async function H5PViewerPage({ params }: ViewerPageProps) {
     notFound();
   }
 
-  const parsed = parseH5PArchive(record.file.buffer);
+  const parsed = await parseH5PArchive(record.file.buffer);
   const baseUrl = await resolveBaseUrl();
   const iframeSrc = `/h5p/${id}/asset?asset=${encodeURIComponent(parsed.metadata.mainFile)}`;
 

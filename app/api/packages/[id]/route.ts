@@ -27,14 +27,14 @@ export async function GET(_: Request, { params }: RouteContext) {
 
   try {
     if (record.type === "h5p") {
-      const parsed = parseH5PArchive(record.file.buffer);
+      const parsed = await parseH5PArchive(record.file.buffer);
       return NextResponse.json({
         ...common,
         metadata: parsed.metadata
       });
     }
     if (record.type === "scorm") {
-      const parsed = parseScormArchive(record.file.buffer);
+      const parsed = await parseScormArchive(record.file.buffer);
       return NextResponse.json({
         ...common,
         metadata: {

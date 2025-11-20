@@ -1,4 +1,5 @@
-import AdmZip from "adm-zip";
+import { tmpdir } from "os";
+import { extractZip } from "../security/zip-extractor";
 
 export interface H5PMetadata {
   title: string;
@@ -19,27 +20,24 @@ const DEFAULT_MAIN_FILES = [
   "h5p.json"
 ];
 
-export function parseH5PArchive(buffer: Buffer): ParsedH5P {
-  const zip = new AdmZip(buffer);
-  const entries = zip.getEntries();
+const TEMP_DIR = tmpdir();
+
+export async function parseH5PArchive(buffer: Buffer): Promise<ParsedH5P> {
+  const entries = await extractZip(buffer, TEMP_DIR);
   const assets = new Map<string, Buffer>();
 
   let h5pConfig: Record<string, unknown> | undefined;
   let contentConfig: Record<string, unknown> | undefined;
 
   for (const entry of entries) {
-    if (entry.isDirectory) {
-      continue;
-    }
-    const normalizedPath = normalizePath(entry.entryName);
-    const data = entry.getData();
-    assets.set(normalizedPath, data);
+    const normalizedPath = normalizePath(entry.path);
+    assets.set(normalizedPath, entry.content);
 
     if (normalizedPath === "h5p.json") {
-      h5pConfig = safeJsonParse(data.toString("utf-8"));
+      h5pConfig = safeJsonParse(entry.content.toString("utf-8"));
     }
     if (normalizedPath === "content/content.json") {
-      contentConfig = safeJsonParse(data.toString("utf-8"));
+      contentConfig = safeJsonParse(entry.content.toString("utf-8"));
     }
   }
 

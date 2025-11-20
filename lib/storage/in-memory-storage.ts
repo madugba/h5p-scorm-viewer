@@ -95,6 +95,18 @@ export class InMemoryStorage {
   
 }
 
-export const inMemoryStorage = new InMemoryStorage();
+declare global {
+  // eslint-disable-next-line no-var
+  var __H5P_SCORM_IN_MEMORY_STORAGE__:
+    | InMemoryStorage
+    | undefined;
+}
+
+const storageInstance =
+  globalThis.__H5P_SCORM_IN_MEMORY_STORAGE__ ??
+  (globalThis.__H5P_SCORM_IN_MEMORY_STORAGE__ =
+    new InMemoryStorage());
+
+export const inMemoryStorage = storageInstance;
 
 

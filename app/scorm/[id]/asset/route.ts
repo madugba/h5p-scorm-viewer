@@ -29,7 +29,19 @@ export async function GET(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Package not found" }, { status: 404 });
   }
 
-  const parsed = parseScormArchive(record.file.buffer);
+  let parsed;
+  try {
+    parsed = await parseScormArchive(record.file.buffer);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          "Unable to parse this SCORM package. Confirm the archive contains a valid imsmanifest.xml file and try again.",
+        details: (error as Error).message ?? "Unknown parsing error."
+      },
+      { status: 422 }
+    );
+  }
   const url = new URL(request.url);
   const assetParam = url.searchParams.get("asset");
   const assetPath = normalizePath(assetParam ?? parsed.launchFile);

@@ -1,6 +1,5 @@
 "use server";
 
-import { nanoid } from "nanoid";
 import { ZodError } from "zod";
 import {
   getDefaultValidationConfig,
@@ -12,6 +11,7 @@ import {
 import { inMemoryStorage, type PackageType } from "@/lib/storage/in-memory-storage";
 import { ValidationError } from "@/lib/security/errors";
 import { inferPackageType } from "@/lib/upload/infer-package-type";
+import { generateId } from "@/lib/utils/id-generator";
 import { parseUploadFormData } from "@/lib/upload/upload-form-schema";
 import type { UploadState } from "./state";
 
@@ -57,7 +57,7 @@ export async function uploadPackageAction(
     );
 
     const buffer = Buffer.from(await fileEntry.arrayBuffer());
-    const id = nanoid(10);
+    const id = generateId();
 
     inMemoryStorage.store({
       id,

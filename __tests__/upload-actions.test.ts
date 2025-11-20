@@ -4,8 +4,8 @@ import { uploadPackageAction } from "../app/upload/actions";
 import { initialUploadState } from "../app/upload/state";
 import { inMemoryStorage } from "../lib/storage/in-memory-storage";
 
-vi.mock("nanoid", () => ({
-  nanoid: () => "pkg1234567"
+vi.mock("../lib/utils/id-generator", () => ({
+  generateId: () => "pkg1234567"
 }));
 
 describe("uploadPackageAction", () => {

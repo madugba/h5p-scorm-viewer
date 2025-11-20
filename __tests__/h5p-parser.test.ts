@@ -31,9 +31,9 @@ const createH5PBuffer = ({
 };
 
 describe("parseH5PArchive", () => {
-  it("extracts metadata and assets", () => {
+  it("extracts metadata and assets", async () => {
     const buffer = createH5PBuffer();
-    const parsed = parseH5PArchive(buffer);
+    const parsed = await parseH5PArchive(buffer);
 
     expect(parsed.metadata.title).toBe("Sample H5P Content");
     expect(parsed.metadata.mainFile).toBe("content/index.html");
@@ -41,9 +41,9 @@ describe("parseH5PArchive", () => {
     expect(parsed.assets.has("scripts/app.js")).toBe(true);
   });
 
-  it("falls back to h5p.json title when content metadata missing", () => {
+  it("falls back to h5p.json title when content metadata missing", async () => {
     const buffer = createH5PBuffer({ includeContentJson: false });
-    const parsed = parseH5PArchive(buffer);
+    const parsed = await parseH5PArchive(buffer);
 
     expect(parsed.metadata.title).toBe("Sample H5P");
   });
