@@ -1,41 +1,18 @@
-export type PackageType = "h5p" | "scorm";
+import type {
+  StorageProvider,
+  PackageRecord,
+  PackageInput,
+  StorageOptions,
+} from "./types";
 
+export type { PackageType, StoredFile, PackageRecord, StorageOptions } from "./types";
 
-
-// declare type interface
-
-export interface StoredFile {
-  filename: string;
-  mimeType: string;
-  size: number;
-  buffer: Buffer;
-  checksum?: string;
-}
-
-export interface PackageRecord {
-  id: string;
-  type: PackageType;
-  file: StoredFile;
-  metadata: Record<string, unknown> | undefined;
-  uploadedAt: Date;
-  expiresAt: number | undefined;
-}
-
-export interface StorageOptions {
-  ttlMs?: number;
-}
-
-interface PackageInput extends Omit<PackageRecord, "uploadedAt" | "expiresAt"> {
-  uploadedAt?: Date;
-}
-
-
-export class InMemoryStorage {
+export class InMemoryStorage implements StorageProvider {
   private readonly records = new Map<string, PackageRecord>();
 
   constructor(private readonly options: StorageOptions = {}) {}
 
-  store(payload: PackageInput): PackageRecord {
+  async store(payload: PackageInput): Promise<PackageRecord> {
     const uploadedAt = payload.uploadedAt ?? new Date();
     const expiresAt =
       this.options.ttlMs !== undefined
@@ -46,18 +23,16 @@ export class InMemoryStorage {
       ...payload,
       metadata: payload.metadata ?? undefined,
       uploadedAt,
-      expiresAt
+      expiresAt,
     };
 
     this.records.set(record.id, record);
     return record;
   }
 
-  get(id: string): PackageRecord | undefined {
+  async get(id: string): Promise<PackageRecord | undefined> {
     const record = this.records.get(id);
-    if (!record) {
-      return undefined;
-    }
+    if (!record) return undefined;
 
     if (record.expiresAt && record.expiresAt <= Date.now()) {
       this.records.delete(id);
@@ -67,24 +42,24 @@ export class InMemoryStorage {
     return record;
   }
 
-  delete(id: string): boolean {
+  async delete(id: string): Promise<boolean> {
     return this.records.delete(id);
   }
 
-  exists(id: string): boolean {
-    return this.get(id) !== undefined;
+  async exists(id: string): Promise<boolean> {
+    return (await this.get(id)) !== undefined;
   }
 
-  list(): PackageRecord[] {
-    this.purgeExpired();
+  async list(): Promise<PackageRecord[]> {
+    await this.purgeExpired();
     return [...this.records.values()];
   }
 
-  clear(): void {
+  async clear(): Promise<void> {
     this.records.clear();
   }
 
-  purgeExpired(): void {
+  private async purgeExpired(): Promise<void> {
     const now = Date.now();
     for (const [id, record] of this.records) {
       if (record.expiresAt && record.expiresAt <= now) {
@@ -92,9 +67,15 @@ export class InMemoryStorage {
       }
     }
   }
-  
 }
 
-export const inMemoryStorage = new InMemoryStorage();
+declare global {
+  // eslint-disable-next-line no-var
+  var __H5P_SCORM_IN_MEMORY_STORAGE__: InMemoryStorage | undefined; // cspell:disable-line
+}
 
+const storageInstance =
+  globalThis.__H5P_SCORM_IN_MEMORY_STORAGE__ ??
+  (globalThis.__H5P_SCORM_IN_MEMORY_STORAGE__ = new InMemoryStorage());
 
+export const inMemoryStorage = storageInstance;

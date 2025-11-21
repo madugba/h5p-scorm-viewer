@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SCORM Basic Sample</title>
+    <style>
+      body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem; }
+      header { margin-bottom: 1.5rem; }
+      .card { border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; max-width: 640px; }
+      ul { padding-left: 1.25rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to the SCORM Basic Sample</h1>
+      <p>This SCO demonstrates the minimal structure needed for testing the viewer.</p>
+    </header>
+    <article class="card">
+      <h2>What to test</h2>
+      <ul>
+        <li>Launches inside a SCORM 1.2 runtime without errors.</li>
+        <li>Reports <em>lesson_status</em> and <em>score.raw</em> values.</li>
+        <li>Loads static HTML/CSS assets from within the package.</li>
+      </ul>
+      <p>Use this sample to confirm basic parsing, routing, and iframe sandbox behaviour.</p>
+    </article>
+    <script>
+      if (window.API) {
+        try {
+          window.API.LMSInitialize("");
+          window.API.LMSSetValue("cmi.core.lesson_status", "completed");
+          window.API.LMSSetValue("cmi.core.score.raw", "95");
+          window.API.LMSCommit("");
+        } catch (err) {
+          console.warn("SCORM API unavailable", err);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -8,9 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ci:build": "npm run test && npm run build"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.937.0",
+    "@aws-sdk/s3-request-presigner": "^3.937.0",
     "@radix-ui/react-slot": "^1.2.4",
     "adm-zip": "^0.5.16",
     "class-variance-authority": "^0.7.1",

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Onboarding Checklist – Lesson 1</title>
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; margin: 2rem; }
+      header { border-bottom: 2px solid #1d4ed8; margin-bottom: 1.5rem; padding-bottom: 0.5rem; }
+      ol { line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Lesson 1 · Orientation</h1>
+      <p>Review the prerequisites before meeting with the facilitator.</p>
+    </header>
+    <ol>
+      <li>Confirm access to the authoring environment.</li>
+      <li>Download the latest implementation plan.</li>
+      <li>Schedule a walkthrough with the QA lead.</li>
+    </ol>
+    <p>When these steps are complete, exit the lesson to log completion.</p>
+    <script>
+      if (window.API) {
+        try {
+          API.LMSInitialize("");
+          API.LMSSetValue("cmi.core.lesson_status", "completed");
+          API.LMSSetValue("cmi.core.score.raw", "88");
+          API.LMSCommit("");
+        } catch (error) {
+          console.warn("SCORM lesson 1 API error", error);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
-import AdmZip from "adm-zip";
+import { tmpdir } from "os";
+import { extractZip } from "../security/zip-extractor";
 
 export type ScormVersion = "1.2" | "2004" | "unknown";
 
@@ -17,21 +18,25 @@ const XML_OPTIONS = {
   removeNSPrefix: true
 };
 
-export function parseScormArchive(buffer: Buffer): ParsedSCORM {
-  const zip = new AdmZip(buffer);
-  const entries = zip.getEntries();
+const TEMP_DIR = tmpdir();
+
+export async function parseScormArchive(buffer: Buffer): Promise<ParsedSCORM> {
+  const entries = await extractZip(buffer, TEMP_DIR);
   const assets = new Map<string, Buffer>();
 
   let manifest: Manifest | null = null;
+  let manifestBasePath = "";
 
   for (const entry of entries) {
-    if (entry.isDirectory) continue;
-    const normalizedPath = normalizePath(entry.entryName);
-    const data = entry.getData();
-    assets.set(normalizedPath, data);
+    const normalizedPath = normalizePath(entry.path);
+    assets.set(normalizedPath, entry.content);
 
-    if (normalizedPath.toLowerCase() === "imsmanifest.xml") {
-      manifest = parseManifest(data.toString());
+    const lowerPath = normalizedPath.toLowerCase();
+    if (lowerPath === "imsmanifest.xml" || lowerPath.endsWith("/imsmanifest.xml")) {
+      manifest = parseManifest(entry.content.toString());
+      // Extract base directory if manifest is in a subdirectory
+      const lastSlash = normalizedPath.lastIndexOf("/");
+      manifestBasePath = lastSlash > 0 ? normalizedPath.slice(0, lastSlash + 1) : "";
     }
   }
 
@@ -41,9 +46,12 @@ export function parseScormArchive(buffer: Buffer): ParsedSCORM {
 
   const { launchFile, title, organization } = extractLaunchData(manifest);
 
+  // Prepend base path to launch file if manifest was in a subdirectory
+  const fullLaunchFile = manifestBasePath + launchFile;
+
   return {
     version: detectVersion(manifest),
-    launchFile,
+    launchFile: fullLaunchFile,
     title,
     organization,
     assets

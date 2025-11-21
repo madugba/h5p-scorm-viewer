@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { inMemoryStorage } from "@/lib/storage/in-memory-storage";
+import { storage } from "@/lib/storage";
 import { parseH5PArchive } from "@/lib/h5p/parser";
 import { parseScormArchive } from "@/lib/scorm/parser";
 
@@ -9,7 +9,7 @@ type RouteContext = {
 
 export async function GET(_: Request, { params }: RouteContext) {
   const { id } = await params;
-  const record = inMemoryStorage.get(id);
+  const record = await storage.get(id);
   if (!record) {
     return NextResponse.json(
       { error: "Package not found" },
@@ -27,14 +27,14 @@ export async function GET(_: Request, { params }: RouteContext) {
 
   try {
     if (record.type === "h5p") {
-      const parsed = parseH5PArchive(record.file.buffer);
+      const parsed = await parseH5PArchive(record.file.buffer);
       return NextResponse.json({
         ...common,
         metadata: parsed.metadata
       });
     }
     if (record.type === "scorm") {
-      const parsed = parseScormArchive(record.file.buffer);
+      const parsed = await parseScormArchive(record.file.buffer);
       return NextResponse.json({
         ...common,
         metadata: {
