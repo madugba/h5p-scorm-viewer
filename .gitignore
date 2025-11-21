@@ -66,3 +66,12 @@ tasks/
 .cursor/
 .taskmaster/
 .playwright/
+
+# documentation
+docs/
+.env*.local
+.mcp.json
+.claude/
+.vercel/
+.env.local
+.env.example

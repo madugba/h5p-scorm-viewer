@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 import { File } from "node:buffer";
 import { uploadPackageAction } from "../app/upload/actions";
 import { initialUploadState } from "../app/upload/state";
-import { inMemoryStorage } from "../lib/storage/in-memory-storage";
+import { storage } from "../lib/storage";
 
 vi.mock("../lib/utils/id-generator", () => ({
   generateId: () => "pkg1234567"
@@ -49,8 +49,8 @@ describe("uploadPackageAction", () => {
     formData.set("redirect", "false");
 
     const storeSpy = vi
-      .spyOn(inMemoryStorage, "store")
-      .mockImplementation((record) => ({
+      .spyOn(storage, "store")
+      .mockImplementation(async (record) => ({
         ...record,
         metadata: record.metadata ?? undefined,
         uploadedAt: new Date(),
@@ -84,7 +84,7 @@ describe("uploadPackageAction", () => {
     formData.set("package", file as unknown as Blob, file.name);
     formData.set("redirect", "false");
 
-    vi.spyOn(inMemoryStorage, "store").mockImplementation((record) => ({
+    vi.spyOn(storage, "store").mockImplementation(async (record) => ({
       ...record,
       metadata: record.metadata ?? undefined,
       uploadedAt: new Date(),
@@ -99,4 +99,3 @@ describe("uploadPackageAction", () => {
     });
   });
 });
-

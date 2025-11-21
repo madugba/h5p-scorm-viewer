@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ShareLink } from "@/components/shared/share-link";
 import { DebugPanel } from "@/components/layout/debug-panel";
-import { inMemoryStorage } from "@/lib/storage/in-memory-storage";
+import { storage } from "@/lib/storage";
 import { parseScormArchive } from "@/lib/scorm/parser";
 import { resolveBaseUrl } from "@/lib/utils/base-url";
 import { BYTES_PER_MB } from "@/lib/security/file-validator";
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default async function SCORMViewerPage({ params }: ViewerPageProps) {
   const { id } = await params;
 
-  const record = inMemoryStorage.get(id);
+  const record = await storage.get(id);
   if (!record || record.type !== "scorm") {
     notFound();
   }
