@@ -8,7 +8,7 @@ import {
   type ValidationConfig,
   validateFile
 } from "@/lib/security/file-validator";
-import { inMemoryStorage, type PackageType } from "@/lib/storage/in-memory-storage";
+import { storage, type PackageType } from "@/lib/storage";
 import { ValidationError } from "@/lib/security/errors";
 import { inferPackageType } from "@/lib/upload/infer-package-type";
 import { generateId } from "@/lib/utils/id-generator";
@@ -59,7 +59,7 @@ export async function uploadPackageAction(
     const buffer = Buffer.from(await fileEntry.arrayBuffer());
     const id = generateId();
 
-    inMemoryStorage.store({
+    await storage.store({
       id,
       type: packageType,
       file: {

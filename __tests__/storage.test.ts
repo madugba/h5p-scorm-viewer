@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  InMemoryStorage,
-  type PackageRecord,
-  type PackageType
-} from "../lib/storage/in-memory-storage";
+import { InMemoryStorage } from "../lib/storage/in-memory-storage";
+import type { PackageRecord, PackageType } from "../lib/storage/types";
 
 const createPackage = (
   overrides: Partial<PackageRecord> = {}
@@ -30,42 +27,40 @@ describe("InMemoryStorage", () => {
     vi.useRealTimers();
   });
 
-  it("stores and returns packages", () => {
+  it("stores and returns packages", async () => {
     const storage = new InMemoryStorage();
-    const record = storage.store(createPackage({ id: "abc" }));
+    const record = await storage.store(createPackage({ id: "abc" }));
 
-    expect(storage.get("abc")).toEqual(record);
-    expect(storage.exists("abc")).toBe(true);
+    expect(await storage.get("abc")).toEqual(record);
+    expect(await storage.exists("abc")).toBe(true);
   });
 
-  it("removes packages", () => {
+  it("removes packages", async () => {
     const storage = new InMemoryStorage();
-    storage.store(createPackage({ id: "to-delete" }));
+    await storage.store(createPackage({ id: "to-delete" }));
 
-    expect(storage.delete("to-delete")).toBe(true);
-    expect(storage.get("to-delete")).toBeUndefined();
+    expect(await storage.delete("to-delete")).toBe(true);
+    expect(await storage.get("to-delete")).toBeUndefined();
   });
 
   it("supports TTL expiration", async () => {
     vi.useFakeTimers();
     const storage = new InMemoryStorage({ ttlMs: 100 });
-    storage.store(createPackage({ id: "ttl" }));
+    await storage.store(createPackage({ id: "ttl" }));
 
     vi.advanceTimersByTime(200);
     await Promise.resolve();
 
-    expect(storage.get("ttl")).toBeUndefined();
-    expect(storage.list()).toHaveLength(0);
+    expect(await storage.get("ttl")).toBeUndefined();
+    expect(await storage.list()).toHaveLength(0);
   });
 
-  it("lists active packages", () => {
+  it("lists active packages", async () => {
     const storage = new InMemoryStorage();
-    storage.store(createPackage({ id: "one" }));
-    storage.store(createPackage({ id: "two" }));
+    await storage.store(createPackage({ id: "one" }));
+    await storage.store(createPackage({ id: "two" }));
 
-    const ids = storage.list().map((pkg) => pkg.id);
+    const ids = (await storage.list()).map((pkg) => pkg.id);
     expect(ids).toEqual(expect.arrayContaining(["one", "two"]));
   });
 });
-
-

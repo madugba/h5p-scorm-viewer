@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { inMemoryStorage } from "@/lib/storage/in-memory-storage";
+import { storage } from "@/lib/storage";
 import { parseH5PArchive } from "@/lib/h5p/parser";
 import { parseScormArchive } from "@/lib/scorm/parser";
 
@@ -9,7 +9,7 @@ type RouteContext = {
 
 export async function GET(_: Request, { params }: RouteContext) {
   const { id } = await params;
-  const record = inMemoryStorage.get(id);
+  const record = await storage.get(id);
   if (!record) {
     return NextResponse.json(
       { error: "Package not found" },

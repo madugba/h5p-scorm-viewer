@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { inMemoryStorage } from "@/lib/storage/in-memory-storage";
+import { storage } from "@/lib/storage";
 import { parseH5PArchive } from "@/lib/h5p/parser";
 
 type RouteContext = {
@@ -23,7 +23,7 @@ const CONTENT_TYPE_MAP: Record<string, string> = {
 
 export async function GET(request: Request, { params }: RouteContext) {
   const { id } = await params;
-  const record = inMemoryStorage.get(id);
+  const record = await storage.get(id);
   if (!record || record.type !== "h5p") {
     return NextResponse.json({ error: "Package not found" }, { status: 404 });
   }
