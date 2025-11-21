@@ -10,6 +10,7 @@ import {
 } from "@/lib/security/file-validator";
 import { ValidationError } from "@/lib/security/errors";
 import { inferPackageType } from "@/lib/upload/infer-package-type";
+import { validatePackageContents } from "@/lib/upload/validate-package";
 import { generateId } from "@/lib/utils/id-generator";
 import { ApiError } from "@/lib/errors/api-error";
 import type { PackageType } from "@/lib/storage";

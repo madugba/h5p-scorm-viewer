@@ -29,10 +29,12 @@ const createManifest = ({
   </resources>
 </manifest>`;
 
-const createScormBuffer = (manifest: string) => {
+const createScormBuffer = (manifest: string, basePath = "") => {
   const zip = new AdmZip();
-  zip.addFile("imsmanifest.xml", Buffer.from(manifest, "utf-8"));
-  zip.addFile("index.html", Buffer.from("<html></html>", "utf-8"));
+  const manifestPath = basePath ? `${basePath}/imsmanifest.xml` : "imsmanifest.xml";
+  const htmlPath = basePath ? `${basePath}/index.html` : "index.html";
+  zip.addFile(manifestPath, Buffer.from(manifest, "utf-8"));
+  zip.addFile(htmlPath, Buffer.from("<html></html>", "utf-8"));
   return zip.toBuffer();
 };
 
@@ -55,6 +57,22 @@ describe("parseScormArchive", () => {
     const zip = new AdmZip();
     const buffer = zip.toBuffer();
     await expect(parseScormArchive(buffer)).rejects.toThrow();
+  });
+
+  it("handles manifest in subdirectory", async () => {
+    const buffer = createScormBuffer(createManifest({ version: "1.2" }), "content");
+    const parsed = await parseScormArchive(buffer);
+    expect(parsed.version).toBe("1.2");
+    expect(parsed.launchFile).toBe("content/index.html");
+    expect(parsed.assets.has("content/imsmanifest.xml")).toBe(true);
+    expect(parsed.assets.has("content/index.html")).toBe(true);
+  });
+
+  it("handles deeply nested manifest", async () => {
+    const buffer = createScormBuffer(createManifest({ version: "2004 4th Edition" }), "scorm/package");
+    const parsed = await parseScormArchive(buffer);
+    expect(parsed.version).toBe("2004");
+    expect(parsed.launchFile).toBe("scorm/package/index.html");
   });
 });
 

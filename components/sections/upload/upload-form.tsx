@@ -33,6 +33,27 @@ const PACKAGE_OPTIONS = [
   { label: "SCORM (.zip)", value: "scorm" }
 ] as const;
 
+async function validatePackage(
+  file: File,
+  packageType: string
+): Promise<{ packageType: PackageType }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("packageType", packageType);
+
+  const response = await fetch("/api/upload/validate", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error?.message ?? "Package validation failed");
+  }
+
+  return response.json();
+}
+
 async function uploadToR2(
   file: File,
   packageType: string,
@@ -141,8 +162,10 @@ export function UploadForm({ baseUrl }: UploadFormProps) {
     setProgress(0);
 
     try {
+      const validation = await validatePackage(file, packageType);
+
       setStatus("uploading");
-      const result = await uploadToR2(file, packageType, setProgress);
+      const result = await uploadToR2(file, validation.packageType, setProgress);
       setSuccess(result);
       setStatus("success");
     } catch (err) {
