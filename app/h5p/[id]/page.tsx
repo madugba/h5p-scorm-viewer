@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ShareLink } from "@/components/shared/share-link";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Button } from "@/components/ui/button";
 import { storage } from "@/lib/storage";
 import { parseH5PArchive } from "@/lib/h5p/parser";
 import { resolveBaseUrl } from "@/lib/utils/base-url";
@@ -23,10 +26,35 @@ export default async function H5PViewerPage({ params }: ViewerPageProps) {
     notFound();
   }
 
-  const parsed = await parseH5PArchive(record.file.buffer);
+  let parsed;
+  try {
+    parsed = await parseH5PArchive(record.file.buffer);
+  } catch (error) {
+    const errorMessage = (error as Error).message ?? "Unknown parsing error.";
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
+        <header className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            H5P Preview
+          </p>
+          <h1 className="text-3xl font-bold text-foreground">
+            Unable to render this package
+          </h1>
+        </header>
+        <ErrorMessage
+          title="Package parsing failed"
+          message="The uploaded archive appears to be malformed or missing required files (for example, h5p.json)."
+          details={errorMessage}
+        />
+        <Button asChild variant="outline">
+          <Link href="/upload">Upload a different package</Link>
+        </Button>
+      </div>
+    );
+  }
+
   const baseUrl = await resolveBaseUrl();
   const iframeSrc = `/h5p/${id}/asset?asset=${encodeURIComponent(parsed.metadata.mainFile)}`;
-
   const uploadedAt = record.uploadedAt.toLocaleString();
   const sizeMB = (record.file.size / BYTES_PER_MB).toFixed(2);
 
@@ -76,8 +104,7 @@ export default async function H5PViewerPage({ params }: ViewerPageProps) {
         <div className="rounded-3xl border bg-muted/30 p-6 shadow-sm">
           <ShareLink path={`/h5p/${id}`} baseUrl={baseUrl} label="Share preview link" />
           <p className="mt-3 text-sm text-muted-foreground">
-            Copy and distribute this link to reviewers. Links remain active while the
-            server session persists.
+            Copy and distribute this link to reviewers. Links remain active while stored.
           </p>
         </div>
       </section>
@@ -108,4 +135,3 @@ export default async function H5PViewerPage({ params }: ViewerPageProps) {
     </div>
   );
 }
-

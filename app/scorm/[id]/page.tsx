@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ShareLink } from "@/components/shared/share-link";
 import { DebugPanel } from "@/components/layout/debug-panel";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Button } from "@/components/ui/button";
 import { storage } from "@/lib/storage";
 import { parseScormArchive } from "@/lib/scorm/parser";
 import { resolveBaseUrl } from "@/lib/utils/base-url";
@@ -12,8 +15,8 @@ type ViewerPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "SCORM Viewer",
-  description: "Preview uploaded SCORM packages with a built-in API shim."
+  title: "SCORM Viewer", // cspell:disable-line
+  description: "Preview uploaded SCORM packages with a built-in API shim." // cspell:disable-line
 };
 
 export default async function SCORMViewerPage({ params }: ViewerPageProps) {
@@ -28,36 +31,31 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
   try {
     parsed = await parseScormArchive(record.file.buffer);
   } catch (error) {
-    const errorMessage =
-      (error as Error).message ?? "Unknown parsing error.";
+    const errorMessage = (error as Error).message ?? "Unknown parsing error.";
     return (
-      <div className="space-y-6 py-10">
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
         <header className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            SCORM Preview
+            SCORM Preview {/* cspell:disable-line */}
           </p>
           <h1 className="text-3xl font-bold text-foreground">
-            We couldn’t render this SCORM package
+            Unable to render this package
           </h1>
         </header>
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 space-y-2 text-sm text-destructive">
-          <p>
-            The uploaded archive appears to be malformed or missing required
-            files (for example, <code>imsmanifest.xml</code>). Please verify
-            the package structure and upload a valid SCORM package.
-          </p>
-          {errorMessage && (
-            <p className="text-xs font-mono text-destructive/80">
-              Diagnostic: {errorMessage}
-            </p>
-          )}
-        </div>
+        <ErrorMessage
+          title="Package parsing failed"
+          message="The uploaded archive appears to be malformed or missing required files (for example, imsmanifest.xml)."
+          details={errorMessage}
+        />
+        <Button asChild variant="outline">
+          <Link href="/upload">Upload a different package</Link>
+        </Button>
       </div>
     );
   }
+
   const baseUrl = await resolveBaseUrl();
   const iframeSrc = `/scorm/${id}/asset?asset=${encodeURIComponent(parsed.launchFile)}`;
-
   const uploadedAt = record.uploadedAt.toLocaleString();
   const sizeMB = (record.file.size / BYTES_PER_MB).toFixed(2);
 
@@ -65,7 +63,7 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
       <header className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          SCORM Preview
+          SCORM Preview {/* cspell:disable-line */}
         </p>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">{parsed.title}</h1>
         <p className="text-base text-muted-foreground">
@@ -88,7 +86,7 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
               <dd className="text-base font-medium text-foreground">{sizeMB} MB</dd>
             </div>
             <div className="rounded-2xl border border-dashed px-4 py-3">
-              <dt>SCORM Version</dt>
+              <dt>SCORM Version</dt> {/* cspell:disable-line */}
               <dd className="text-base font-medium text-foreground">
                 {parsed.version.toUpperCase()}
               </dd>
@@ -110,8 +108,7 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
         <div className="rounded-3xl border bg-muted/30 p-6 shadow-sm">
           <ShareLink path={`/scorm/${id}`} baseUrl={baseUrl} label="Share preview link" />
           <p className="mt-3 text-sm text-muted-foreground">
-            Share this link with SMEs or QA testers. Links remain active for as long as the
-            upload is stored in memory.
+            Share this link with SMEs or QA testers. Links remain active while stored.
           </p>
         </div>
       </section>
@@ -124,7 +121,7 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
                 Live Preview
               </p>
               <p className="text-sm text-muted-foreground">
-                Sandboxed iframe renders with the SCORM API shim injected server-side.
+                Sandboxed iframe renders with the SCORM API shim injected server-side. {/* cspell:disable-line */}
               </p>
             </div>
           </div>
@@ -144,4 +141,3 @@ export default async function SCORMViewerPage({ params }: ViewerPageProps) {
     </div>
   );
 }
-
