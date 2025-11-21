@@ -83,7 +83,7 @@ export function UploadForm({ baseUrl }: UploadFormProps) {
           className="block w-full cursor-pointer rounded-md border border-dashed border-border bg-background/80 px-4 py-10 text-center text-sm text-muted-foreground transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         />
         <p className="text-xs text-muted-foreground">
-          Accepted formats: .h5p or .zip (SCORM). Max size {MAX_SIZE_MB}MB.
+          Accepted formats: .h5p or .zip (SCORM). Max size {MAX_SIZE_MB}MB EACH FILE.
         </p>
       </div>
 
